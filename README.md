@@ -1,0 +1,2 @@
+# Polymaxii
+Polymarket auto-trading
