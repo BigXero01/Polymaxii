@@ -1,0 +1,236 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  passwordHash  String
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  portfolio     Portfolio?
+  botSettings   BotSettings?
+  trades        Trade[]
+  predictions   Prediction[]
+  deposits      Deposit[]
+  withdrawals   Withdrawal[]
+  apiKeys       ExchangeApiKey[]
+
+  @@index([email])
+}
+
+model Portfolio {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  usdBalance       Float    @default(0)
+  btcBalance       Float    @default(0)
+  totalDeposited   Float    @default(0)
+  totalWithdrawn   Float    @default(0)
+  realizedPnl      Float    @default(0)
+  unrealizedPnl    Float    @default(0)
+  highWaterMark    Float    @default(0)
+  maxDrawdown      Float    @default(0)
+  updatedAt        DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model BotSettings {
+  id                    String      @id @default(cuid())
+  userId                String      @unique
+  isActive              Boolean     @default(false)
+  tradingMode           TradingMode @default(PAPER)
+  minConfidence         Float       @default(65)
+  maxPositionSizePct    Float       @default(5)
+  stopLossPct           Float       @default(2)
+  takeProfitPct         Float       @default(4)
+  maxConcurrentTrades   Int         @default(3)
+  tradeIntervalMinutes  Int         @default(15)
+  updatedAt             DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ExchangeApiKey {
+  id         String   @id @default(cuid())
+  userId     String
+  exchange   String   @default("binance")
+  apiKey     String
+  secretKey  String
+  label      String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Prediction {
+  id            String           @id @default(cuid())
+  userId        String
+  symbol        String           @default("BTCUSDT")
+  direction     PredictionDir
+  confidence    Float
+  entryPrice    Float
+  targetPrice   Float
+  stopPrice     Float
+  signals       Json
+  status        PredictionStatus @default(PENDING)
+  actualPrice   Float?
+  createdAt     DateTime         @default(now())
+  expiresAt     DateTime
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trades Trade[]
+
+  @@index([userId, status])
+  @@index([createdAt])
+}
+
+model Trade {
+  id            String      @id @default(cuid())
+  userId        String
+  predictionId  String?
+  symbol        String      @default("BTCUSDT")
+  side          TradeSide
+  tradingMode   TradingMode
+  entryPrice    Float
+  exitPrice     Float?
+  quantity      Float
+  notional      Float
+  stopLoss      Float
+  takeProfit    Float
+  status        TradeStatus @default(OPEN)
+  closeReason   CloseReason?
+  pnl           Float?
+  pnlPct        Float?
+  fee           Float       @default(0)
+  openedAt      DateTime    @default(now())
+  closedAt      DateTime?
+  exchangeOrderId String?
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prediction Prediction? @relation(fields: [predictionId], references: [id])
+
+  @@index([userId, status])
+  @@index([openedAt])
+}
+
+model Deposit {
+  id              String        @id @default(cuid())
+  userId          String
+  amountCents     Int
+  currency        String        @default("USD")
+  stripePaymentId String        @unique
+  status          DepositStatus @default(PENDING)
+  createdAt       DateTime      @default(now())
+  completedAt     DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stripePaymentId])
+}
+
+model Withdrawal {
+  id                String            @id @default(cuid())
+  userId            String
+  amountBtc         Float
+  amountSats        Int
+  btcAddress        String
+  txid              String?
+  status            WithdrawalStatus  @default(PENDING)
+  feeRateSatVbyte   Int
+  feeSats           Int?
+  createdAt         DateTime          @default(now())
+  broadcastAt       DateTime?
+  confirmedAt       DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([txid])
+}
+
+model PriceCandle {
+  id         String   @id @default(cuid())
+  symbol     String   @default("BTCUSDT")
+  interval   String   @default("15m")
+  openTime   DateTime
+  open       Float
+  high       Float
+  low        Float
+  close      Float
+  volume     Float
+  closeTime  DateTime
+  trades     Int
+
+  @@unique([symbol, interval, openTime])
+  @@index([symbol, interval, openTime])
+}
+
+enum TradingMode {
+  PAPER
+  LIVE
+}
+
+enum PredictionDir {
+  UP
+  DOWN
+  NEUTRAL
+}
+
+enum PredictionStatus {
+  PENDING
+  CORRECT
+  INCORRECT
+  EXPIRED
+}
+
+enum TradeSide {
+  LONG
+  SHORT
+}
+
+enum TradeStatus {
+  OPEN
+  CLOSED
+  CANCELLED
+}
+
+enum CloseReason {
+  TAKE_PROFIT
+  STOP_LOSS
+  MANUAL
+  PREDICTION_REVERSAL
+  TIME_EXPIRY
+}
+
+enum DepositStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PROCESSING
+  BROADCAST
+  CONFIRMED
+  FAILED
+}

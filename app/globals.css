@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 4%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 7%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 7%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 38 92% 54%;
+    --primary-foreground: 222 47% 4%;
+    --secondary: 222 47% 11%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 222 47% 11%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 222 47% 14%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 32% 14%;
+    --input: 217 32% 14%;
+    --ring: 38 92% 54%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-background;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+}
+
+@layer utilities {
+  .text-profit { color: #00c896; }
+  .text-loss { color: #ff4d4d; }
+  .text-btc { color: #f7931a; }
+  .bg-profit { background-color: #00c896; }
+  .bg-loss { background-color: #ff4d4d; }
+  .border-profit { border-color: #00c896; }
+  .border-loss { border-color: #ff4d4d; }
+
+  .glow-btc {
+    box-shadow: 0 0 20px rgba(247, 147, 26, 0.2);
+  }
+  .glow-profit {
+    box-shadow: 0 0 20px rgba(0, 200, 150, 0.2);
+  }
+  .glow-loss {
+    box-shadow: 0 0 20px rgba(255, 77, 77, 0.2);
+  }
+
+  .card-glass {
+    @apply bg-card/80 backdrop-blur-sm border border-border/50;
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+}
+
+/* TradingView chart overrides */
+.tv-chart-container {
+  @apply rounded-lg overflow-hidden border border-border/30;
+}

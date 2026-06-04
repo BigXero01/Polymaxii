@@ -1,0 +1,60 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: polymaxii_db
+    environment:
+      POSTGRES_DB: polymaxii
+      POSTGRES_USER: polymaxii
+      POSTGRES_PASSWORD: polymaxii_secret
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U polymaxii']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: polymaxii_redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+
+  app:
+    build: .
+    container_name: polymaxii_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://polymaxii:polymaxii_secret@postgres:5432/polymaxii
+      REDIS_URL: redis://redis:6379
+    ports:
+      - '3000:3000'
+    command: sh -c "npx prisma db push && npm start"
+
+  ml-service:
+    build:
+      context: ./ml
+      dockerfile: Dockerfile
+    container_name: polymaxii_ml
+    ports:
+      - '8001:8001'
+    environment:
+      - ML_SERVICE_ENABLED=true
+
+volumes:
+  postgres_data:
+  redis_data:
