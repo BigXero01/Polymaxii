@@ -1,9 +1,10 @@
-import type { NextConfig } from 'next'
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  output: 'standalone',
+  // 'standalone' is needed for the Docker/self-hosted target, but conflicts with
+  // the Netlify Next.js runtime, which manages its own output. Disable it on Netlify.
+  output: process.env.NETLIFY ? undefined : 'standalone',
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'assets.coingecko.com' },

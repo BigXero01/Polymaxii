@@ -1,6 +1,11 @@
-import { auth } from '@/lib/auth'
+import NextAuth from 'next-auth'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { authConfig } from '@/lib/auth.config'
+
+// Use the edge-safe config here so the middleware bundle does not pull in
+// Prisma or bcrypt, which are not supported on the Edge runtime.
+const { auth } = NextAuth(authConfig)
 
 const PUBLIC_PATHS = ['/login', '/register', '/api/auth', '/_next', '/favicon.ico', '/public']
 const API_PREFIX = '/api'

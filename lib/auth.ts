@@ -4,6 +4,7 @@ import { PrismaAdapter } from '@auth/prisma-adapter'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import db from './db'
+import { authConfig } from './auth.config'
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -11,12 +12,8 @@ const loginSchema = z.object({
 })
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(db) as any,
-  session: { strategy: 'jwt' },
-  pages: {
-    signIn: '/login',
-    error: '/login',
-  },
   providers: [
     Credentials({
       name: 'credentials',
@@ -44,18 +41,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) token.id = user.id
-      return token
-    },
-    async session({ session, token }) {
-      if (session.user && token.id) {
-        (session.user as any).id = token.id
-      }
-      return session
-    },
-  },
   events: {
     async createUser({ user }) {
       // Bootstrap portfolio and bot settings on first sign-up
