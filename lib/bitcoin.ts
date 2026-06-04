@@ -1,6 +1,8 @@
 import * as bitcoin from 'bitcoinjs-lib'
 import * as ecc from 'tiny-secp256k1'
 import { ECPairFactory } from 'ecpair'
+import { mnemonicToSeed } from 'bip39'
+import HDKey from 'hdkey'
 import { btcToSats, satsToBtc } from './utils'
 
 bitcoin.initEccLib(ecc)
@@ -122,10 +124,8 @@ export async function buildAndBroadcastWithdrawal(
   const mnemonic = process.env.BTC_WALLET_MNEMONIC
   if (!mnemonic) throw new Error('Hot wallet not configured')
 
-  // Derive hot wallet keypair
-  const bip39 = await import('bip39')
-  const HDKey = (await import('hdkey')).default
-  const seed = await bip39.mnemonicToSeed(mnemonic)
+  // Derive hot wallet keypair (BIP84 P2WPKH)
+  const seed = await mnemonicToSeed(mnemonic)
   const root = HDKey.fromMasterSeed(seed)
   const child = root.derive("m/84'/0'/0'/0/0") // BIP84 P2WPKH
 

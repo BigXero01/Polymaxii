@@ -7,9 +7,8 @@ import {
   buildAndBroadcastWithdrawal,
   fetchCurrentFeeRate,
 } from '@/lib/bitcoin'
-import { btcToSats, satsToBtc } from '@/lib/utils'
+import { btcToSats, satsToBtc, apiError, apiSuccess } from '@/lib/utils'
 import db from '@/lib/db'
-import { apiError, apiSuccess } from '@/lib/utils'
 
 const MIN_BTC = satsToBtc(parseInt(process.env.BTC_MIN_WITHDRAWAL_SATS ?? '50000', 10))
 

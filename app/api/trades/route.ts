@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server'
 import { auth } from '@/lib/auth'
-import { closeTrade } from '@/lib/trader'
 import { getCachedTicker } from '@/lib/binance'
 import db from '@/lib/db'
 import { apiError, apiSuccess } from '@/lib/utils'

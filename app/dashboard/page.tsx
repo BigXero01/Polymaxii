@@ -48,7 +48,7 @@ export default async function DashboardPage() {
 
       {/* Portfolio Stats Row */}
       <Suspense fallback={<div className="grid grid-cols-4 gap-4">{Array(4).fill(0).map((_, i) => <StatSkeleton key={i} />)}</div>}>
-        <PortfolioStats portfolio={portfolio!} ticker={ticker} />
+        {portfolio && <PortfolioStats portfolio={portfolio} ticker={ticker} />}
       </Suspense>
 
       {/* Main Grid: Chart + Prediction */}
